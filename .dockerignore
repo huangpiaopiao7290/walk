@@ -1,0 +1,6 @@
+# .dockerignore
+bin/
+logs/
+.git/
+.env
+.vscode

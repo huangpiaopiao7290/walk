@@ -1,0 +1,50 @@
+server:
+  port: 63792
+
+# jwt configration
+jwt:
+  secret: 4b79626ed4ea188d7047df19deff58c2
+  access_token_ttl: 3600
+  refresh_token_ttl: 86400
+
+# email configuration
+email:
+  host: smtp.qq.com
+  port: 465
+  username: pp
+  password: 123
+
+
+# database configuration
+database:
+  host: xxx
+  port: 3680
+  driver: xxx
+  url: xxx
+  username: xxx
+  password: xxx
+  DBName: xxx
+
+# redis configuration
+# redis:
+#   host:
+#   port:
+#   password:
+#   database:
+#   timeout:
+#   pool:
+#     maxIdle:
+#     maxActive:
+#     idleTimeout:
+#     wait: false
+#     maxConnLifetime:
+
+# etcd configuration
+etcd:
+  endpoints:
+    - "http://localhost:2379"
+    - "http://localhost:22379"    
+  dialTimeout: 5
+  requestTimeout: 5
+  # username:
+  # password:
