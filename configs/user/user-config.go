@@ -11,10 +11,11 @@ import (
 )
 
 type UserConfig struct {
-	JWT 	JWT 	 `mapstructure:"jwt"`
-	Email 	Email 	 `mapstructure:"email"`
-	Dtabase Database `mapstructure:"database"`
-	Etcd 	Etcd 	 `mapstructure:"etcd"`
+	JWT 		JWT 	 	`mapstructure:"jwt"`
+	Email 		Email 	 	`mapstructure:"email"`
+	Dtabase 	Database 	`mapstructure:"database"`
+	CacheRedis  CacheRedis 	`mapstructure:"cacheRedis"`
+	Etcd 		Etcd 	 	`mapstructure:"etcd"`
 
 }
 
@@ -38,6 +39,12 @@ type Database struct {
 	Username 	string 	`mapstructure:"username"`
 	Password 	string 	`mapstructure:"password"`
 	DBname 		string 	`mapstructure:"DBname"`
+}
+
+
+type CacheRedis struct {
+	Host 		string 	`mapstructure:"host"`
+	Type 		string 	`mapstructure:"Type"`
 }
 
 type Etcd struct {

@@ -26,18 +26,9 @@ database:
   DBName: xxx
 
 # redis configuration
-# redis:
-#   host:
-#   port:
-#   password:
-#   database:
-#   timeout:
-#   pool:
-#     maxIdle:
-#     maxActive:
-#     idleTimeout:
-#     wait: false
-#     maxConnLifetime:
+CacheRedis:
+  host: redis:6379
+  Type: node
 
 # etcd configuration
 etcd:

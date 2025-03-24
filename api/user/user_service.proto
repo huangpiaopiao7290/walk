@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package userClient;
+
+option go_package = "api/user/userClient";
+
+// 用户服务接口
+service UserService {
+    // auth
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+
+    // user
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
+}
+
+/* auth */
+
+message RegisterRequest {
+    string email = 1;       // 邮箱
+    string password = 2;    // 密码
+}
+
+message RegisterResponse {
+    string token = 1;       // token
+}
+
+message LoginRequest {
+    string email = 1;       // 邮箱
+    string password = 2;    // 密码
+}
+
+message LoginResponse {
+    int64 id = 1;           // 用户id
+    string name = 2;        // 用户名
+    string email = 3;       // 邮箱
+    string token = 4;       // token
+}
+
+message LogoutRequest {
+    int64 id = 1;           // 用户id
+    string token = 2;       // token
+}
+
+message LogoutResponse {
+    bool success = 1;      // 是否成功
+}
+
+/* user */
+
+message GetUserRequest {
+    int64 id = 1;           // 用户id
+    string token = 2;       // token
+}
+
+message GetUserResponse {
+    int64 id = 1;           // 用户id
+    string name = 2;        // 用户名
+    string email = 3;       // 邮箱
+    string avatar = 4;      // 头像
+    string ip = 5;          // ip
+}
+
+message UpdateUserRequest {
+    int64 id = 1;           // 用户id
+    string token = 2;       // token
+    string name = 3;        // 用户名
+    string email = 4;       // 邮箱
+    string avatar = 5;      // 头像
+}
+
+message UpdateUserResponse {
+    bool success = 1;      // 是否成功
+}
+
+message DeleteUserRequest {
+    int64 id = 1;           // 用户id
+    string token = 2;       // token
+}
+
+message DeleteUserResponse {
+    bool success = 1;      // 是否成功
+}

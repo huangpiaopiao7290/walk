@@ -1,22 +1,24 @@
 # walk
 A project of walk and look, based on go and react
 
+## content
+There are two sections about Walk, that are tag and grasp. The tag part is suppotred by Amap, and you can  mark locations where you have gone in your earth model. In another grasp part, recording what you're looking here in each of your memeory tabs.
 
-## 主要功能
-- 用户服务（jwt-go鉴权）
-- 地图服务（由Amap提供基础支持）
-- 存储服务
 
-## 环境依赖版本
+## Program Introduction
+### env  
 - go 1.24.0
-- 
-
-## 项目结构
-```
-
-```
+- etcd
+- protocol buffers
+- mariadb
+- redis
 
 
 
+### map-service
 
-## 启动步骤
+
+
+### user-service
+
+
