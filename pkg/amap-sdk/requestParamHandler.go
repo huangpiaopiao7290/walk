@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"os"
+	"net/http"
+	"io"
 )
 
 // 处理Amap地图服务请求参数
@@ -42,3 +45,38 @@ func ProcessParams(params map[string]string, sig string) (string, error) {
 
 	return encroptParams, nil
 }	
+
+
+// 处理Amap地图服务响应: 保存返回的图片
+// @param reqURL string: request url
+// @param resp *http.Response: response
+// @param filepath string: 保存路径
+func SaveImageFromResponse(reqURL string, resp *http.Response, filepath string) error {
+	// 判断响应是否正常
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("for request to url: %v. got %d", reqURL, resp.StatusCode)
+	}
+
+	// 读取响应体
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("for request to url: %v,  respone is ok but repone body is empty: ", err)
+	}
+
+	defer resp.Body.Close()
+
+	// 将数据写入文件
+	err = os.WriteFile(filepath, body, 0644)
+	if err != nil {
+		return fmt.Errorf("error writing image file to %s", filepath)
+	}
+
+	roorDIR, err :=  os.Getwd()
+	if err != nil {
+		fmt.Println("get root dir fail", err)
+	}
+	fmt.Println("root dir: ", roorDIR)
+
+	return nil
+
+}

@@ -82,7 +82,7 @@ func (s *MapWebService) GetStaticMap(location, size, markers, zoom string) (*htt
 		"makers": markers,
 		"key": s.key,
 	}
-
+	// 请求参数签名
 	encrypotParams, err := amapsdk.ProcessParams(params, s.signature)
 	if err != nil {
 		log.Printf("handle amap request params error: %v", err)
@@ -101,10 +101,11 @@ func (s *MapWebService) GetStaticMap(location, size, markers, zoom string) (*htt
 
 	// 发送get请求
 	resp, err := http.Get(staticMapURL)
-    if err != nil {
-        fmt.Println("get request error:", err)
-        return nil, err
-    }
+	if err != nil {
+		fmt.Println("get request error:", err)
+		return nil, err
+	}
+	// defer resp.Body.Close()
 
 	return resp, nil
 }

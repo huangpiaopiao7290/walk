@@ -5,8 +5,8 @@
 package map_service
 
 import (
-	"log"
-	"net/http"
+	// "log"
+	// "net/http"
 
 	"walk/configs/map"
 	// "walk/pkg/amap-sdk"
