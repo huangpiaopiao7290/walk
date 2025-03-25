@@ -7,6 +7,7 @@ There are two sections about Walk, that are tag and grasp. The tag part is suppo
 
 ## Program Introduction
 ### env  
+- wsl2 arch
 - go 1.24.0
 - etcd
 - protocol buffers
@@ -14,6 +15,11 @@ There are two sections about Walk, that are tag and grasp. The tag part is suppo
 - redis
 
 
+
+### Docker
+- base
+- map-service
+- user-service
 
 ### map-service
 

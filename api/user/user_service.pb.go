@@ -4,7 +4,7 @@
 // 	protoc        v6.30.0
 // source: api/user/user_service.proto
 
-package userClient
+package user
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -731,7 +731,8 @@ const file_api_user_user_service_proto_rawDesc = "" +
 	"\n" +
 	"UpdateUser\x12\x1d.userClient.UpdateUserRequest\x1a\x1e.userClient.UpdateUserResponse\"\x00\x12M\n" +
 	"\n" +
-	"DeleteUser\x12\x1d.userClient.DeleteUserRequest\x1a\x1e.userClient.DeleteUserResponse\"\x00B\x15Z\x13api/user/userClientb\x06proto3"
+	"DeleteUser\x12\x1d.userClient.DeleteUserRequest\x1a\x1e.userClient.DeleteUserResponse\"\x00B\n" +
+	"Z\bapi/userb\x06proto3"
 
 var (
 	file_api_user_user_service_proto_rawDescOnce sync.Once

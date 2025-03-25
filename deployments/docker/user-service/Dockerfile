@@ -1,9 +1,9 @@
 # 继承base dockerfile
 FROM walk/base-go-app:latest
 
-WORKDIR /app/map-service
+WORKDIR /app/user-service
 
 COPY . .
 
-RUN go build -o map-service
+RUN go build -o user-service
 

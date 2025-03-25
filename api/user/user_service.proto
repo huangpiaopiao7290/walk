@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package userClient;
 
-option go_package = "api/user/userClient";
+option go_package = "api/user";
 
 // 用户服务接口
 service UserService {
