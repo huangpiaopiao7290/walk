@@ -13,7 +13,7 @@ import (
 type UserConfig struct {
 	JWT 		JWT 	 	`mapstructure:"jwt"`
 	Email 		Email 	 	`mapstructure:"email"`
-	Dtabase 	Database 	`mapstructure:"database"`
+	Database 	Database 	`mapstructure:"database"`
 	CacheRedis  CacheRedis 	`mapstructure:"cacheRedis"`
 	Etcd 		Etcd 	 	`mapstructure:"etcd"`
 
@@ -74,6 +74,4 @@ func InitUserConfig(userConfigFile string) (*UserConfig, error) {
 
 	return &userConfig, nil
 }
-
-
 

@@ -17,13 +17,12 @@ email:
 
 # database configuration
 database:
-  host: xxx
-  port: 3680
-  driver: xxx
-  url: xxx
-  username: xxx
-  password: xxx
-  DBName: xxx
+  host: localhost
+  port: 3306
+  driver: mysql
+  username: bobo
+  password: bb123
+  DBName: walk
 
 # redis configuration
 CacheRedis:
