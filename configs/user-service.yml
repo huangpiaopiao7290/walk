@@ -22,7 +22,7 @@ database:
   driver: mysql
   username: bobo
   password: bb123
-  DBName: walk
+  DBName: walk_user_db
 
 # redis configuration
 CacheRedis:

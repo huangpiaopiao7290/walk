@@ -18,20 +18,20 @@ type DBConfig struct {
 	Port 	string
 	User 	string
 	Passwd 	string
-	BDName 	string
+	DBName 	string
 }
 
 // create a new database connection and return it
-func NewDBConnection(cfg *DBConfig) *gorm.DB {
+func NewDBConnection(cfg *DBConfig) (*gorm.DB, error) {
 	// get the database configuration
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.User, cfg.Passwd, cfg.Host, cfg.Port, cfg.BDName)
+		cfg.User, cfg.Passwd, cfg.Host, cfg.Port, cfg.DBName)
 	// create a new database connection
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	return db
+	return db, nil
 }
 
 // create a new database connection pool and return it
@@ -40,6 +40,11 @@ func NewDBConnection(cfg *DBConfig) *gorm.DB {
 // @param maxIdleConns int: the maximum number of connections in the idle connection pool
 // @param connMaxLifetime int: the maximum amount of time a connection may be reused
 func SetupDBConnectionPool(db *gorm.DB, maxOpenConns, maxIdleConns, connMaxLifetime int) error {
+	if maxOpenConns <= 0 || maxIdleConns < 0 || connMaxLifetime <= 0 {
+		return fmt.Errorf("invalid connection pool parameters: maxOpen=%d, maxIdle=%d, maxLifetime=%v",
+			maxOpenConns, maxIdleConns, connMaxLifetime)
+	}
+	
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying SQL DB: %w", err)
@@ -56,10 +61,10 @@ func SetupDBConnectionPool(db *gorm.DB, maxOpenConns, maxIdleConns, connMaxLifet
 
 // show the database connection pool status immediately
 // @param db *gorm.DB: the database connection
-func ShowPoolStatus(db *gorm.DB) {
+func ShowPoolStatus(db *gorm.DB) error {
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Printf("failed to get SQL DB: %v", err)
+		return fmt.Errorf("failed to get SQL DB: %w", err)
 	}
 
 	stats := sqlDB.Stats()
@@ -71,4 +76,6 @@ func ShowPoolStatus(db *gorm.DB) {
 	log.Printf("Idle Connections: %d", stats.Idle)
 	log.Printf("Wait Count: %d", stats.WaitCount)
 	log.Printf("Wait Duration: %v", stats.WaitDuration)
+
+	return nil
 }

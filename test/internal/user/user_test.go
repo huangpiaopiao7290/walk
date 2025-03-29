@@ -39,14 +39,14 @@ func TestConnDB(t *testing.T) {
 	}
 	
 	// 连接数据库
-	db := utils.NewDBConnection(&utils.DBConfig{
+	db, err := utils.NewDBConnection(&utils.DBConfig{
 		Host:   dbConfig.Host,
 		Port:   fmt.Sprintf("%d", dbConfig.Port),
 		User:   dbConfig.Username,
 		Passwd: dbConfig.Password,
-		BDName: dbConfig.DBname,
+		DBName: dbConfig.DBname,
 	})
-	if db == nil {
+	if err != nil {
 		t.Error("Failed to connect to the database")
 		return
 	}
@@ -63,20 +63,20 @@ func TestConnDBPool(t *testing.T) {
 	}
 
 	// 创建数据库连接池
-	db := utils.NewDBConnection(&utils.DBConfig{
+	db, err := utils.NewDBConnection(&utils.DBConfig{
 		Host:   dbConfig.Host,
 		Port:   fmt.Sprintf("%d", dbConfig.Port),
 		User:   dbConfig.Username,
 		Passwd: dbConfig.Password,
-		BDName: dbConfig.DBname,
+		DBName: dbConfig.DBname,
 	})
-	if db == nil {
+	if err != nil {
 		t.Error("Failed to connect to the database")
 		return
 	}	
 
 	// 设置数据库连接池
-	err := utils.SetupDBConnectionPool(db, 10, 5, 300)	
+	err = utils.SetupDBConnectionPool(db, 10, 5, 300)	
 	if err != nil {
 		t.Errorf("Failed to set up the database connection pool: %v", err)
 		return
@@ -87,7 +87,11 @@ func TestConnDBPool(t *testing.T) {
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
-			utils.ShowPoolStatus(db)
+			status := utils.ShowPoolStatus(db)
+			if status != nil {
+				t.Errorf("Failed to show the database connection pool status: %v", status)
+				return
+			}
 		}
 	}()
 
@@ -104,7 +108,7 @@ func TestConnDBPool(t *testing.T) {
 		for i := range concurrentRequests {
 			go func(id int) {
 				defer wg.Done()
-				for j := 0; j < testIterations; j++ {
+				for j := range testIterations {
                     // 执行测试查询
                     if err := performTestQuery(db); err != nil {
                         t.Errorf("协程%d-%d查询失败: %v", id, j, err)
