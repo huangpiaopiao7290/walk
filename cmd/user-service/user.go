@@ -1,3 +1,7 @@
+// Auth: pp
+// Created: 
+// Desc: user service in restful api
+
 package main
 
 // import (

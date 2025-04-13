@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package userClient;
+package userServer;
 
 option go_package = "rpc/user";
 
@@ -20,67 +20,78 @@ service UserService {
 /* auth */
 
 message RegisterRequest {
-    string email = 1;       // 邮箱
-    string password = 2;    // 密码
+    string uname = 1;               // 用户名
+    string email = 2;               // 邮箱
+    string password = 3;            // 密码（明文）
+    string ip_address = 4;          // 注册IP地址
 }
 
 message RegisterResponse {
-    string token = 1;       // token
+    string uid = 1;                 // 用户uuid
+    string uname = 2;               // 用户名
+    string email = 3;               // 邮箱
 }
 
 message LoginRequest {
-    string email = 1;       // 邮箱
-    string password = 2;    // 密码
+    string email = 1;               // 邮箱
+    string password = 2;            // 密码（明文）
 }
 
 message LoginResponse {
-    int64 id = 1;           // 用户id
-    string name = 2;        // 用户名
-    string email = 3;       // 邮箱
-    string token = 4;       // token
+    string uid = 1;                 // 用户uuid
+    string uname = 2;               // 用户名
+    string email = 3;               // 邮箱
+    string avatar = 4;              // 头像URL
+    string access_token = 5;        // Access Token
+    string refresh_token = 6;       // Refresh Token
 }
 
 message LogoutRequest {
-    int64 id = 1;           // 用户id
-    string token = 2;       // token
+    string uid = 1;                 // 用户uuid
+    string token = 2;               // 当前 token
 }
 
 message LogoutResponse {
-    bool success = 1;      // 是否成功
+    bool success = 1;               // 是否成功
+    string error_message = 2;       // 错误信息（可选）
 }
 
 /* user */
 
 message GetUserRequest {
-    int64 id = 1;           // 用户id
-    string token = 2;       // token
+    string uid = 1;                 // 用户uuid
+    string token = 2;               // token
 }
 
 message GetUserResponse {
-    int64 id = 1;           // 用户id
-    string name = 2;        // 用户名
-    string email = 3;       // 邮箱
-    string avatar = 4;      // 头像
-    string ip = 5;          // ip
+    string uid = 1;                 // 用户uuid
+    string uname = 2;               // 用户名
+    string email = 3;               // 邮箱
+    string avatar = 4;              // 头像URL
+    string last_login_ip = 5;       // 最后登录IP地址
+    int64 register_time = 6;        // 注册时间（Unix 时间戳）
+    int64 last_login_time = 7;      // 最后登录时间（Unix 时间戳）
 }
 
 message UpdateUserRequest {
-    int64 id = 1;           // 用户id
-    string token = 2;       // token
-    string name = 3;        // 用户名
-    string email = 4;       // 邮箱
-    string avatar = 5;      // 头像
+    string uid = 1;                 // 用户uuid
+    string token = 2;               // token
+    string uname = 3;               // 用户名（可选）
+    string email = 4;               // 邮箱（可选）
+    string avatar = 5;              // 头像URL（可选）
 }
 
 message UpdateUserResponse {
-    bool success = 1;      // 是否成功
+    bool success = 1;               // 是否成功
+    string error_message = 2;       // 错误信息（可选）
 }
 
 message DeleteUserRequest {
-    int64 id = 1;           // 用户id
-    string token = 2;       // token
+    string uid = 1;                 // 用户uuid
+    string token = 2;               // token
 }
 
 message DeleteUserResponse {
-    bool success = 1;      // 是否成功
-}
+    bool success = 1;               // 是否成功
+    string error_message = 2;       // 错误信息（可选）
+} 

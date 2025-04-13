@@ -23,8 +23,10 @@ const (
 
 type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`       // 邮箱
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // 密码
+	Uname         string                 `protobuf:"bytes,1,opt,name=uname,proto3" json:"uname,omitempty"`                          // 用户名
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`                          // 邮箱
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`                    // 密码（明文）
+	IpAddress     string                 `protobuf:"bytes,4,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"` // 注册IP地址
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,6 +61,13 @@ func (*RegisterRequest) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{0}
 }
 
+func (x *RegisterRequest) GetUname() string {
+	if x != nil {
+		return x.Uname
+	}
+	return ""
+}
+
 func (x *RegisterRequest) GetEmail() string {
 	if x != nil {
 		return x.Email
@@ -73,9 +82,18 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
+func (x *RegisterRequest) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"` // token
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`     // 用户uuid
+	Uname         string                 `protobuf:"bytes,2,opt,name=uname,proto3" json:"uname,omitempty"` // 用户名
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"` // 邮箱
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -110,9 +128,23 @@ func (*RegisterResponse) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *RegisterResponse) GetToken() string {
+func (x *RegisterResponse) GetUid() string {
 	if x != nil {
-		return x.Token
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *RegisterResponse) GetUname() string {
+	if x != nil {
+		return x.Uname
+	}
+	return ""
+}
+
+func (x *RegisterResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
 	}
 	return ""
 }
@@ -120,7 +152,7 @@ func (x *RegisterResponse) GetToken() string {
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`       // 邮箱
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // 密码
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"` // 密码（明文）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -171,10 +203,12 @@ func (x *LoginRequest) GetPassword() string {
 
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`      // 用户id
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`   // 用户名
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"` // 邮箱
-	Token         string                 `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"` // token
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`                                       // 用户uuid
+	Uname         string                 `protobuf:"bytes,2,opt,name=uname,proto3" json:"uname,omitempty"`                                   // 用户名
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`                                   // 邮箱
+	Avatar        string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`                                 // 头像URL
+	AccessToken   string                 `protobuf:"bytes,5,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`    // Access Token
+	RefreshToken  string                 `protobuf:"bytes,6,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"` // Refresh Token
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -209,16 +243,16 @@ func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *LoginResponse) GetId() int64 {
+func (x *LoginResponse) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
-func (x *LoginResponse) GetName() string {
+func (x *LoginResponse) GetUname() string {
 	if x != nil {
-		return x.Name
+		return x.Uname
 	}
 	return ""
 }
@@ -230,17 +264,31 @@ func (x *LoginResponse) GetEmail() string {
 	return ""
 }
 
-func (x *LoginResponse) GetToken() string {
+func (x *LoginResponse) GetAvatar() string {
 	if x != nil {
-		return x.Token
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
 	}
 	return ""
 }
 
 type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`      // 用户id
-	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"` // token
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`     // 用户uuid
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"` // 当前 token
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -275,11 +323,11 @@ func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *LogoutRequest) GetId() int64 {
+func (x *LogoutRequest) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
 func (x *LogoutRequest) GetToken() string {
@@ -291,7 +339,8 @@ func (x *LogoutRequest) GetToken() string {
 
 type LogoutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"` // 是否成功
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                              // 是否成功
+	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"` // 错误信息（可选）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -333,9 +382,16 @@ func (x *LogoutResponse) GetSuccess() bool {
 	return false
 }
 
+func (x *LogoutResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
 type GetUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`      // 用户id
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`     // 用户uuid
 	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"` // token
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -371,11 +427,11 @@ func (*GetUserRequest) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *GetUserRequest) GetId() int64 {
+func (x *GetUserRequest) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
 func (x *GetUserRequest) GetToken() string {
@@ -387,11 +443,13 @@ func (x *GetUserRequest) GetToken() string {
 
 type GetUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`        // 用户id
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`     // 用户名
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`   // 邮箱
-	Avatar        string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"` // 头像
-	Ip            string                 `protobuf:"bytes,5,opt,name=ip,proto3" json:"ip,omitempty"`         // ip
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`                                             // 用户uuid
+	Uname         string                 `protobuf:"bytes,2,opt,name=uname,proto3" json:"uname,omitempty"`                                         // 用户名
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`                                         // 邮箱
+	Avatar        string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`                                       // 头像URL
+	LastLoginIp   string                 `protobuf:"bytes,5,opt,name=last_login_ip,json=lastLoginIp,proto3" json:"last_login_ip,omitempty"`        // 最后登录IP地址
+	RegisterTime  int64                  `protobuf:"varint,6,opt,name=register_time,json=registerTime,proto3" json:"register_time,omitempty"`      // 注册时间（Unix 时间戳）
+	LastLoginTime int64                  `protobuf:"varint,7,opt,name=last_login_time,json=lastLoginTime,proto3" json:"last_login_time,omitempty"` // 最后登录时间（Unix 时间戳）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -426,16 +484,16 @@ func (*GetUserResponse) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *GetUserResponse) GetId() int64 {
+func (x *GetUserResponse) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
-func (x *GetUserResponse) GetName() string {
+func (x *GetUserResponse) GetUname() string {
 	if x != nil {
-		return x.Name
+		return x.Uname
 	}
 	return ""
 }
@@ -454,20 +512,34 @@ func (x *GetUserResponse) GetAvatar() string {
 	return ""
 }
 
-func (x *GetUserResponse) GetIp() string {
+func (x *GetUserResponse) GetLastLoginIp() string {
 	if x != nil {
-		return x.Ip
+		return x.LastLoginIp
 	}
 	return ""
 }
 
+func (x *GetUserResponse) GetRegisterTime() int64 {
+	if x != nil {
+		return x.RegisterTime
+	}
+	return 0
+}
+
+func (x *GetUserResponse) GetLastLoginTime() int64 {
+	if x != nil {
+		return x.LastLoginTime
+	}
+	return 0
+}
+
 type UpdateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`        // 用户id
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`       // 用户uuid
 	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`   // token
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`     // 用户名
-	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`   // 邮箱
-	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"` // 头像
+	Uname         string                 `protobuf:"bytes,3,opt,name=uname,proto3" json:"uname,omitempty"`   // 用户名（可选）
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`   // 邮箱（可选）
+	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"` // 头像URL（可选）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -502,11 +574,11 @@ func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *UpdateUserRequest) GetId() int64 {
+func (x *UpdateUserRequest) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
 func (x *UpdateUserRequest) GetToken() string {
@@ -516,9 +588,9 @@ func (x *UpdateUserRequest) GetToken() string {
 	return ""
 }
 
-func (x *UpdateUserRequest) GetName() string {
+func (x *UpdateUserRequest) GetUname() string {
 	if x != nil {
-		return x.Name
+		return x.Uname
 	}
 	return ""
 }
@@ -539,7 +611,8 @@ func (x *UpdateUserRequest) GetAvatar() string {
 
 type UpdateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"` // 是否成功
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                              // 是否成功
+	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"` // 错误信息（可选）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -581,9 +654,16 @@ func (x *UpdateUserResponse) GetSuccess() bool {
 	return false
 }
 
+func (x *UpdateUserResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
 type DeleteUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`      // 用户id
+	Uid           string                 `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`     // 用户uuid
 	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"` // token
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -619,11 +699,11 @@ func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
 	return file_rpc_user_user_service_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *DeleteUserRequest) GetId() int64 {
+func (x *DeleteUserRequest) GetUid() string {
 	if x != nil {
-		return x.Id
+		return x.Uid
 	}
-	return 0
+	return ""
 }
 
 func (x *DeleteUserRequest) GetToken() string {
@@ -635,7 +715,8 @@ func (x *DeleteUserRequest) GetToken() string {
 
 type DeleteUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"` // 是否成功
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                              // 是否成功
+	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"` // 错误信息（可选）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -677,61 +758,80 @@ func (x *DeleteUserResponse) GetSuccess() bool {
 	return false
 }
 
+func (x *DeleteUserResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
 var File_rpc_user_user_service_proto protoreflect.FileDescriptor
 
 const file_rpc_user_user_service_proto_rawDesc = "" +
 	"\n" +
 	"\x1brpc/user/user_service.proto\x12\n" +
-	"userClient\"C\n" +
+	"userServer\"x\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"(\n" +
-	"\x10RegisterResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\"@\n" +
+	"\x05uname\x18\x01 \x01(\tR\x05uname\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x04 \x01(\tR\tipAddress\"P\n" +
+	"\x10RegisterResponse\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05uname\x18\x02 \x01(\tR\x05uname\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"@\n" +
 	"\fLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"_\n" +
-	"\rLoginResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
-	"\x05token\x18\x04 \x01(\tR\x05token\"5\n" +
-	"\rLogoutRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\"*\n" +
-	"\x0eLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"6\n" +
-	"\x0eGetUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\"s\n" +
-	"\x0fGetUserResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xad\x01\n" +
+	"\rLoginResponse\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05uname\x18\x02 \x01(\tR\x05uname\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x16\n" +
-	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12\x0e\n" +
-	"\x02ip\x18\x05 \x01(\tR\x02ip\"{\n" +
-	"\x11UpdateUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12!\n" +
+	"\faccess_token\x18\x05 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x06 \x01(\tR\frefreshToken\"7\n" +
+	"\rLogoutRequest\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"O\n" +
+	"\x0eLogoutResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"8\n" +
+	"\x0eGetUserRequest\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"\xd8\x01\n" +
+	"\x0fGetUserResponse\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05uname\x18\x02 \x01(\tR\x05uname\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x16\n" +
+	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12\"\n" +
+	"\rlast_login_ip\x18\x05 \x01(\tR\vlastLoginIp\x12#\n" +
+	"\rregister_time\x18\x06 \x01(\x03R\fregisterTime\x12&\n" +
+	"\x0flast_login_time\x18\a \x01(\x03R\rlastLoginTime\"\x7f\n" +
+	"\x11UpdateUserRequest\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\x12\x14\n" +
+	"\x05uname\x18\x03 \x01(\tR\x05uname\x12\x14\n" +
 	"\x05email\x18\x04 \x01(\tR\x05email\x12\x16\n" +
-	"\x06avatar\x18\x05 \x01(\tR\x06avatar\".\n" +
+	"\x06avatar\x18\x05 \x01(\tR\x06avatar\"S\n" +
 	"\x12UpdateUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"9\n" +
-	"\x11DeleteUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\".\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\";\n" +
+	"\x11DeleteUserRequest\x12\x10\n" +
+	"\x03uid\x18\x01 \x01(\tR\x03uid\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"S\n" +
 	"\x12DeleteUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xbd\x03\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage2\xbd\x03\n" +
 	"\vUserService\x12G\n" +
-	"\bRegister\x12\x1b.userClient.RegisterRequest\x1a\x1c.userClient.RegisterResponse\"\x00\x12>\n" +
-	"\x05Login\x12\x18.userClient.LoginRequest\x1a\x19.userClient.LoginResponse\"\x00\x12A\n" +
-	"\x06Logout\x12\x19.userClient.LogoutRequest\x1a\x1a.userClient.LogoutResponse\"\x00\x12D\n" +
-	"\aGetUser\x12\x1a.userClient.GetUserRequest\x1a\x1b.userClient.GetUserResponse\"\x00\x12M\n" +
+	"\bRegister\x12\x1b.userServer.RegisterRequest\x1a\x1c.userServer.RegisterResponse\"\x00\x12>\n" +
+	"\x05Login\x12\x18.userServer.LoginRequest\x1a\x19.userServer.LoginResponse\"\x00\x12A\n" +
+	"\x06Logout\x12\x19.userServer.LogoutRequest\x1a\x1a.userServer.LogoutResponse\"\x00\x12D\n" +
+	"\aGetUser\x12\x1a.userServer.GetUserRequest\x1a\x1b.userServer.GetUserResponse\"\x00\x12M\n" +
 	"\n" +
-	"UpdateUser\x12\x1d.userClient.UpdateUserRequest\x1a\x1e.userClient.UpdateUserResponse\"\x00\x12M\n" +
+	"UpdateUser\x12\x1d.userServer.UpdateUserRequest\x1a\x1e.userServer.UpdateUserResponse\"\x00\x12M\n" +
 	"\n" +
-	"DeleteUser\x12\x1d.userClient.DeleteUserRequest\x1a\x1e.userClient.DeleteUserResponse\"\x00B\n" +
+	"DeleteUser\x12\x1d.userServer.DeleteUserRequest\x1a\x1e.userServer.DeleteUserResponse\"\x00B\n" +
 	"Z\brpc/userb\x06proto3"
 
 var (
@@ -748,32 +848,32 @@ func file_rpc_user_user_service_proto_rawDescGZIP() []byte {
 
 var file_rpc_user_user_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_rpc_user_user_service_proto_goTypes = []any{
-	(*RegisterRequest)(nil),    // 0: userClient.RegisterRequest
-	(*RegisterResponse)(nil),   // 1: userClient.RegisterResponse
-	(*LoginRequest)(nil),       // 2: userClient.LoginRequest
-	(*LoginResponse)(nil),      // 3: userClient.LoginResponse
-	(*LogoutRequest)(nil),      // 4: userClient.LogoutRequest
-	(*LogoutResponse)(nil),     // 5: userClient.LogoutResponse
-	(*GetUserRequest)(nil),     // 6: userClient.GetUserRequest
-	(*GetUserResponse)(nil),    // 7: userClient.GetUserResponse
-	(*UpdateUserRequest)(nil),  // 8: userClient.UpdateUserRequest
-	(*UpdateUserResponse)(nil), // 9: userClient.UpdateUserResponse
-	(*DeleteUserRequest)(nil),  // 10: userClient.DeleteUserRequest
-	(*DeleteUserResponse)(nil), // 11: userClient.DeleteUserResponse
+	(*RegisterRequest)(nil),    // 0: userServer.RegisterRequest
+	(*RegisterResponse)(nil),   // 1: userServer.RegisterResponse
+	(*LoginRequest)(nil),       // 2: userServer.LoginRequest
+	(*LoginResponse)(nil),      // 3: userServer.LoginResponse
+	(*LogoutRequest)(nil),      // 4: userServer.LogoutRequest
+	(*LogoutResponse)(nil),     // 5: userServer.LogoutResponse
+	(*GetUserRequest)(nil),     // 6: userServer.GetUserRequest
+	(*GetUserResponse)(nil),    // 7: userServer.GetUserResponse
+	(*UpdateUserRequest)(nil),  // 8: userServer.UpdateUserRequest
+	(*UpdateUserResponse)(nil), // 9: userServer.UpdateUserResponse
+	(*DeleteUserRequest)(nil),  // 10: userServer.DeleteUserRequest
+	(*DeleteUserResponse)(nil), // 11: userServer.DeleteUserResponse
 }
 var file_rpc_user_user_service_proto_depIdxs = []int32{
-	0,  // 0: userClient.UserService.Register:input_type -> userClient.RegisterRequest
-	2,  // 1: userClient.UserService.Login:input_type -> userClient.LoginRequest
-	4,  // 2: userClient.UserService.Logout:input_type -> userClient.LogoutRequest
-	6,  // 3: userClient.UserService.GetUser:input_type -> userClient.GetUserRequest
-	8,  // 4: userClient.UserService.UpdateUser:input_type -> userClient.UpdateUserRequest
-	10, // 5: userClient.UserService.DeleteUser:input_type -> userClient.DeleteUserRequest
-	1,  // 6: userClient.UserService.Register:output_type -> userClient.RegisterResponse
-	3,  // 7: userClient.UserService.Login:output_type -> userClient.LoginResponse
-	5,  // 8: userClient.UserService.Logout:output_type -> userClient.LogoutResponse
-	7,  // 9: userClient.UserService.GetUser:output_type -> userClient.GetUserResponse
-	9,  // 10: userClient.UserService.UpdateUser:output_type -> userClient.UpdateUserResponse
-	11, // 11: userClient.UserService.DeleteUser:output_type -> userClient.DeleteUserResponse
+	0,  // 0: userServer.UserService.Register:input_type -> userServer.RegisterRequest
+	2,  // 1: userServer.UserService.Login:input_type -> userServer.LoginRequest
+	4,  // 2: userServer.UserService.Logout:input_type -> userServer.LogoutRequest
+	6,  // 3: userServer.UserService.GetUser:input_type -> userServer.GetUserRequest
+	8,  // 4: userServer.UserService.UpdateUser:input_type -> userServer.UpdateUserRequest
+	10, // 5: userServer.UserService.DeleteUser:input_type -> userServer.DeleteUserRequest
+	1,  // 6: userServer.UserService.Register:output_type -> userServer.RegisterResponse
+	3,  // 7: userServer.UserService.Login:output_type -> userServer.LoginResponse
+	5,  // 8: userServer.UserService.Logout:output_type -> userServer.LogoutResponse
+	7,  // 9: userServer.UserService.GetUser:output_type -> userServer.GetUserResponse
+	9,  // 10: userServer.UserService.UpdateUser:output_type -> userServer.UpdateUserResponse
+	11, // 11: userServer.UserService.DeleteUser:output_type -> userServer.DeleteUserResponse
 	6,  // [6:12] is the sub-list for method output_type
 	0,  // [0:6] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

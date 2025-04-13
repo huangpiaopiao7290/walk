@@ -76,7 +76,7 @@ func TestConnDBPool(t *testing.T) {
 	}	
 
 	// 设置数据库连接池
-	err = utils.SetupDBConnectionPool(db, 10, 5, 300)	
+	err = utils.SetupDBConnectionPool(db, 10, 5, 100)	
 	if err != nil {
 		t.Errorf("Failed to set up the database connection pool: %v", err)
 		return

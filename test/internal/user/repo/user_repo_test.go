@@ -64,6 +64,12 @@ func TestCreate(t *testing.T) {
 		}
 	}()
 
+	defer func() {
+		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
+		if !t.Failed() { 
+			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
+		}
+	}()
 	// 初始化repo接口
 	repo = user_repo.NewUserRepo[user_model.User](tx)
 
@@ -92,10 +98,10 @@ func TestCreate(t *testing.T) {
 		t.Errorf("Create error: CreatedAt is not set")
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 }
 
 // 测试createInBatches方法
@@ -108,6 +114,12 @@ func TestCreateInBatches(t *testing.T) {
 		}
 	}()
 
+	defer func() {
+		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
+		if !t.Failed() { 
+			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
+		}
+	}()
 	// 初始化repo接口
 	repo = user_repo.NewUserRepo[user_model.User](tx)
 
@@ -149,10 +161,10 @@ func TestCreateInBatches(t *testing.T) {
 		t.Errorf("Expected 2 users, got %d", count)
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 
 	// 打印操作数
 	log.Printf("Number of rows affected: %d", count)
@@ -202,10 +214,10 @@ func TestGetByID(t *testing.T) {
 		t.Errorf("Expected username '%s', got '%s'", user.Uname, result.Uname)
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 
 	// 打印结果
 	log.Printf("Result: %+v", result)
@@ -259,10 +271,10 @@ func TestGetByFields(t *testing.T) {
 		t.Errorf("Expected username '%s', got '%s'", user.Uname, result.Uname)
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 
 	log.Printf("Result: %+v", result)	
 }
@@ -318,10 +330,10 @@ func TestUpdate(t *testing.T) {
 		t.Errorf("Expected username 'Charlie Updated', got '%s'", result.Uname)
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 
 	log.Printf("Updated user: %+v", result)
 }
@@ -370,10 +382,10 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Expected error when fetching deleted user, but got nil")
 	}
 
-	// // 提交事务
-	// if err := tx.Commit().Error; err != nil {
-	// 	t.Errorf("Failed to commit transaction: %v", err)
-	// }
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		t.Errorf("Failed to commit transaction: %v", err)
+	}
 
 	log.Printf("Deleted user ID: %d", user.ID)
 }

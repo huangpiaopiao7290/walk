@@ -11,6 +11,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 )
 
 type DBConfig struct {
@@ -78,4 +79,13 @@ func ShowPoolStatus(db *gorm.DB) error {
 	log.Printf("Wait Duration: %v", stats.WaitDuration)
 
 	return nil
+}
+
+// generate a new UUID and return it
+func GenerateUUID() (string, error) {
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate UUID: %w", err)
+	}
+	return uuid.String(), nil
 }
