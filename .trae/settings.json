@@ -1,9 +1,0 @@
-{
-  "workbench.colorCustomizations": {
-    "editor.background": "#333333",  // 深灰色背景
-    "editor.foreground": "#FAFAFA",  // 浅灰色文本
-    "editor.selectionBackground": "#404040",  // 更深的灰色选中背景
-    "editor.lineHighlightBackground": "#3A3A3A",  // 稍浅的深灰色行高亮
-    "editorCursor.foreground": "#FFFFFF"  // 白色光标
-  }
-}
