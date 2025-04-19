@@ -5,5 +5,5 @@ WORKDIR /app/map-service
 
 COPY . .
 
-RUN go build -o map-service
+RUN mkdir -p ${OUTPUT_DIR} && go build -o ${OUTPUT_DIR}/map-service
 

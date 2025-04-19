@@ -5,5 +5,5 @@ WORKDIR /app/user-service
 
 COPY . .
 
-RUN go build -o user-service
+RUN mkdir -p ${OUTPUT_DIR} && go build -o ${OUTPUT_DIR}/user-service
 

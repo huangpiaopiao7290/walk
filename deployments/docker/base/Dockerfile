@@ -2,6 +2,7 @@
 FROM archlinux:5.15.167
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV OUTPUT_DIR /app/bin
 
 RUN pacman -Syu --noconfirm && \
     pacman -S --noconfirm go protobuf
