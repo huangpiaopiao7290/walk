@@ -14,7 +14,7 @@ type UserConfig struct {
 	JWT 		JWT 	 	`mapstructure:"jwt"`
 	Email 		Email 	 	`mapstructure:"email"`
 	Database 	Database 	`mapstructure:"database"`
-	CacheRedis  CacheRedis 	`mapstructure:"cacheRedis"`
+	Redis  		Redis 	`mapstructure:"Redis"`
 	Etcd 		Etcd 	 	`mapstructure:"etcd"`
 
 }
@@ -42,9 +42,16 @@ type Database struct {
 }
 
 
-type CacheRedis struct {
-	Host 		string 	`mapstructure:"host"`
-	Type 		string 	`mapstructure:"Type"`
+type Redis struct {
+	Network 		string 	`mapstructure:"network"`
+	Addr 			string 	`mapstructure:"addr"`
+	Username 		string 	`mapstructure:"username"`
+	Password 		string 	`mapstructure:"password"`
+	DB 				int 	`mapstructure:"db"`
+	PoolSize 		int 	`mapstructure:"poolSize"`
+	MinIdelTimeout 	int 	`mapstructure:"minIdleTimeout"`
+	MaxIdleTimeout 	int 	`mapstructure:"maxIdleTimeout"`
+	MaxRetries 		int 	`mapstructure:"maxRetries"`
 }
 
 type Etcd struct {

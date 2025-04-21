@@ -1,0 +1,12 @@
+server:
+  port: 63791
+
+amap:
+  web:
+    key: 49e634afb8758e593b36a823f560335e
+    signature: 98946d713b2c42845bdca5e5ab04e87a
+    geocodeBaseURL: https://restapi.amap.com/v3/geocode/geo
+    staticMapBaseURL: https://restapi.amap.com/v3/staticmap
+  web_js:
+    key: 3a89d2987c84da6cae92d9a4693a1bdf
+    private_key: 4b79626ed4ea188d7047df19deff58c2

@@ -370,3 +370,60 @@ func TestUserServiceUpdateUser(t *testing.T) {
 		// 创建前端
 	})
 }
+
+// 测试逻辑删除用户
+func TestUserServiceDeleteUser(t *testing.T) {
+	// 启动测试服务器
+	server, listener := startTestServer()
+	defer func() {
+		server.Stop()
+		listener.Close()
+	}()
+	// 创建 gRPC 客户端连接
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("Failed to dial server: %v", err)
+	}
+	defer conn.Close()
+	client := user_pb.NewUserServiceClient(conn)
+	// 测试用例1: 获取当前登录用户
+	t.Run("TestLogin", func(t *testing.T) {
+		loginReq := &user_pb.LoginRequest{
+			Email:    "test@example.com",
+			Password: "password123",
+		}
+		resp, err := client.Login(context.Background(), loginReq)
+		if err != nil {
+			t.Errorf("Login failed: %v", err)
+		}
+		log.Printf("Login response: %+v", resp)
+
+		// 逻辑删除用户
+		deleteReq := &user_pb.DeleteUserRequest{
+			Uid:   resp.Uid,
+			Token: resp.AccessToken,
+		}
+		log.Printf("Testing delete user with token: %+v", deleteReq)
+		deleteResp, err := client.DeleteUser(context.Background(), deleteReq)
+		if err != nil {
+			t.Errorf("DeleteUser failed: %v", err)
+		}
+		log.Printf("DeleteUser response: %+v", deleteResp)
+
+		// 验证用户是否已逻辑删除
+		getUserReq := &user_pb.GetUserRequest{
+			Uid:   resp.Uid,
+			Token: resp.AccessToken,
+		}
+		getUserResp, err := client.GetUser(context.Background(), getUserReq)
+		if err == nil {
+			t.Errorf("Expected error for deleted user, but got nil")
+		}
+		if status.Code(err) != codes.NotFound { // 添加验证错误码
+			t.Errorf("Expected code NOT_FOUND, got %v", status.Code(err))
+		}
+		// 打印获取用户信息响应
+		log.Printf("GetUser response: %+v", getUserResp)
+
+	})
+}

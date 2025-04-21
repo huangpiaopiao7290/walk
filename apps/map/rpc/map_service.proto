@@ -1,0 +1,4 @@
+syntax = "proto3";
+package mapServer;
+option go_package = "apps/map/rpc";
+

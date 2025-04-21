@@ -5,9 +5,9 @@
 package utils
 
 import (
-    "gorm.io/driver/mysql"
-    "gorm.io/gorm"
 	"fmt"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 	"time"
 
@@ -15,11 +15,11 @@ import (
 )
 
 type DBConfig struct {
-	Host 	string
-	Port 	string
-	User 	string
-	Passwd 	string
-	DBName 	string
+	Host   string
+	Port   string
+	User   string
+	Passwd string
+	DBName string
 }
 
 // create a new database connection and return it
@@ -45,7 +45,7 @@ func SetupDBConnectionPool(db *gorm.DB, maxOpenConns, maxIdleConns, connMaxLifet
 		return fmt.Errorf("invalid connection pool parameters: maxOpen=%d, maxIdle=%d, maxLifetime=%v",
 			maxOpenConns, maxIdleConns, connMaxLifetime)
 	}
-	
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying SQL DB: %w", err)
@@ -55,7 +55,7 @@ func SetupDBConnectionPool(db *gorm.DB, maxOpenConns, maxIdleConns, connMaxLifet
 	sqlDB.SetMaxIdleConns(maxIdleConns)
 	sqlDB.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Second)
 
-	log.Printf("Database connection pool configured: maxOpen=%d, maxIdle=%d, maxLifetime=%v", 
+	log.Printf("Database connection pool configured: maxOpen=%d, maxIdle=%d, maxLifetime=%v",
 		maxOpenConns, maxIdleConns, connMaxLifetime)
 	return nil
 }
@@ -81,7 +81,8 @@ func ShowPoolStatus(db *gorm.DB) error {
 	return nil
 }
 
-// generate a new UUID and return it
+
+// 创建uuid
 func GenerateUUID() (string, error) {
 	uuid, err := uuid.NewUUID()
 	if err != nil {

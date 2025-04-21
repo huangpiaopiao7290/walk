@@ -9,10 +9,6 @@ import (
 	"log"
 	"sync"
 
-	// "os"
-
-	// "fmt"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -273,5 +269,45 @@ func (s *UserService) UpdateUser(ctx context.Context, req *user_pb.UpdateUserReq
 	return &user_pb.UpdateUserResponse{
 		Success: true,
 	}, nil
+}
 
+// 逻辑删除用户
+// @Param ctx context.Context: context
+// @Param req *user_proto.DeleteUserRequest: delete user request
+// @Return *user_proto.DeleteUserResponse: delete user response
+// @Return error: error
+func (s *UserService) DeleteUser(ctx context.Context, req *user_pb.DeleteUserRequest) (*user_pb.DeleteUserResponse, error) {
+	// 检测用户是否存在
+	user, err := s.UserRepo.GetByFields(map[string]any{"uuid": req.Uid})
+	if err != nil {
+		log.Printf("[UserService] DeleteUser error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to fetch user data: %v", err)
+	}
+	if user == nil {
+		log.Printf("[UserService] DeleteUser error: user with UUID %s not found", req.Uid)
+		return nil, status.Errorf(codes.NotFound, "user with this UUID does not exist")
+	}
+
+	// 开启事务
+	tx, err := s.UserRepo.BeginTransaction(ctx)
+	if err != nil {
+		log.Printf("[UserService] DeleteUser error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to begin transaction: %v", err)
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			// 捕获panic并回滚
+			s.UserRepo.RollbackTransaction(tx)
+			log.Printf("[UserService] DeleteUser panic recover: %v", err)
+		}
+	}()
+
+	// 逻辑删除用户
+	if err := s.UserRepo.DeleteByUid(req.Uid); err != nil {
+		log.Printf("[UserService] DeleteUser error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to delete user data: %v", err)
+	}
+	return &user_pb.DeleteUserResponse{
+		Success: true,
+	}, nil
 }
