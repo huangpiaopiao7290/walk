@@ -28,6 +28,10 @@ func init() {
 		Username: cfg.Redis.Username,
 		Password: cfg.Redis.Password,
 		DB:       cfg.Redis.DB,
+		PoolSize: cfg.Redis.PoolSize,
+		MinIdleConns: cfg.Redis.MinIdleConns,
+		MaxIdleConns: cfg.Redis.MaxIdleConns,
+		MaxRetries: cfg.Redis.MaxRetries,
 	})
 	if err != nil {
 		log.Fatalf("Failed to create Redis client: %v", err)
@@ -46,3 +50,5 @@ func TestRedisClient(t *testing.T) {
 		t.Errorf("failed to connect to Redis: %v", err)
 	}
 }
+
+

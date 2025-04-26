@@ -10,7 +10,7 @@ service UserService {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
     rpc Logout(LogoutRequest) returns (LogoutResponse) {}
-
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
     // user
     rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
     rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
@@ -96,3 +96,13 @@ message DeleteUserResponse {
     bool success = 1;               // 是否成功
     string error_message = 2;       // 错误信息（可选）
 } 
+
+message RefreshTokenRequest {
+    string uid = 1;                 // 用户uuid
+    string token = 2;               // 当前 token
+}
+
+message RefreshTokenResponse {
+    string access_token = 1;        // 新的 Access Token
+    string refresh_token = 2;       // 新的 Refresh Token
+}

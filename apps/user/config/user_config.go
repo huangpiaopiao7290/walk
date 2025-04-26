@@ -49,8 +49,8 @@ type Redis struct {
 	Password 		string 	`mapstructure:"password"`
 	DB 				int 	`mapstructure:"db"`
 	PoolSize 		int 	`mapstructure:"poolSize"`
-	MinIdelTimeout 	int 	`mapstructure:"minIdleTimeout"`
-	MaxIdleTimeout 	int 	`mapstructure:"maxIdleTimeout"`
+	MinIdleConns 	int 	`mapstructure:"minIdleTimeout"`
+	MaxIdleConns 	int 	`mapstructure:"maxIdleTimeout"`
 	MaxRetries 		int 	`mapstructure:"maxRetries"`
 }
 

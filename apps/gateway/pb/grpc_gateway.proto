@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package grpcGateway;
+
+option go_package = "apps/gateway/pb";
+
+// 通用请求消息（用于协议转换和路由）
+message Request {
+    string method = 1;                  // HTTP 方法
+    string path = 2;                    // 请求路径
+    map<string, string> headers = 3;    // 请求头
+    bytes body = 4;                     // 请求体
+    string service_name = 5;            // 目标服务名称
+}
+
+// 通用响应消息
+message Response {
+    int32 status_code = 1;              // HTTP 状态码
+    map<string, string> headers = 2;    // 响应头
+    bytes body = 3;                     // 响应体
+    string error = 4;                   // 错误信息
+}
+
+// 服务注册请求
+message RegisterServiceRequest {
+    string service_name = 1;            // 服务名称
+    string service_host = 2;            // 服务地址
+    int32 service_port = 3;             // 服务端口
+    repeated string endpoints = 4;      // 服务端点列表
+}
+
+// 服务注册响应
+message RegisterServiceResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// 身份验证请求
+message AuthenticateRequest {
+    string token = 1;                   // 身份验证令牌
+    map<string, string> headers = 2;    // 可选的请求头
+}
+
+// 日志监控请求
+message LogRequestMessage {
+    string method = 1;                  // HTTP 方法
+    string path = 2;                    // 请求路径
+    map<string, string> headers = 3;    // 请求头
+    bytes body = 4;                     // 请求体
+    string client_ip = 5;               // 客户端 IP 地址
+}
+
+// 错误处理请求
+message HandleErrorRequest {
+    int32 error_code = 1;               // 错误代码
+    string error_message = 2;           // 错误消息
+    map<string, string> context = 3;    // 错误上下文信息
+}
+
+// 网关服务接口
+service GatewayService {
+    // 协议转换
+    rpc HandleRequest(Request) returns (Response) {}
+    
+    // 路由
+    rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse) {}
+    
+    // 身份验证
+    rpc Authenticate(AuthenticateRequest) returns (Response) {}
+    
+    // 日志监控
+    rpc LogRequest(LogRequestMessage) returns (Response) {}
+    
+    // 错误处理
+    rpc HandleError(HandleErrorRequest) returns (Response) {}
+}

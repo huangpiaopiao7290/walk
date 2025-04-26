@@ -151,6 +151,10 @@ func (s *UserService) Login(ctx context.Context, req *user_pb.LoginRequest) (*us
 		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", refreshTokenErr)
 	}
 
+	// 将refreshToken存储到redis并设置过期时间
+
+
+
 	// 返回登录成功的响应
 	return &user_pb.LoginResponse{
 		Uid:          existingUser.UUID,
@@ -309,5 +313,57 @@ func (s *UserService) DeleteUser(ctx context.Context, req *user_pb.DeleteUserReq
 	}
 	return &user_pb.DeleteUserResponse{
 		Success: true,
+	}, nil
+}
+
+// 刷新token
+// @Param ctx context.Context: context
+// @Param req *user_proto.RefreshTokenRequest: refresh token request
+// @Return *user_proto.RefreshTokenResponse: refresh token response
+// @Return error: error
+func (s *UserService) RefreshToken(ctx context.Context, req *user_pb.RefreshTokenRequest) (*user_pb.RefreshTokenResponse, error) {
+	// 验证刷新令牌
+	claims, err := user_utils.ParseToken(req.Token, &s.Cfg.JWT)
+	if err != nil {
+		log.Printf("[UserService] RefreshToken error: failed to parse token: %v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
+	}
+
+	// 验证用户ID是否匹配
+	if claims.UUID != req.Uid {
+		log.Printf("[UserService] RefreshToken error: token UUID does not match request UID")
+		return nil, status.Errorf(codes.PermissionDenied, "token does not belong to the user")
+	}
+
+	// 检查用户是否存在
+	user, err := s.UserRepo.GetByFields(map[string]any{"uuid": req.Uid})
+	if err != nil {
+		log.Printf("[UserService] RefreshToken error: failed to get user: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to fetch user data: %v", err)
+	}
+	if user == nil {
+		log.Printf("[UserService] RefreshToken error: user not found")
+		return nil, status.Errorf(codes.NotFound, "user not found")
+	}
+
+	// 生成新的访问令牌
+	accessToken, err := user_utils.GenerateAccessToken(&s.Cfg.JWT, user.UUID)
+	if err != nil {
+		log.Printf("[UserService] RefreshToken error: failed to generate access token: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+	}
+
+	// 生成新的刷新令牌
+	refreshToken, err := user_utils.GenerateRefreshToken(&s.Cfg.JWT, user.UUID)
+	if err != nil {
+		log.Printf("[UserService] RefreshToken error: failed to generate refresh token: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
+	}
+
+	// 将新的令牌存储到redis
+
+	return &user_pb.RefreshTokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }

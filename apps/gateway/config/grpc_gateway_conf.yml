@@ -1,0 +1,22 @@
+http:
+  routers:
+    user_service:
+      rule: "Host(`/api/v1/user`)"
+      service: user_serice
+      entryPoints:
+        - web
+    map_service:
+      rule: "Host(`/api/v1/map`)"
+      service: map_service
+      entryPoints:
+        - web
+    
+    service:
+      user_service:
+        loadBalancer:
+          servers:
+            - url: "http://user_service:50051"
+      map_service:
+        loadBalancer:
+          servers:
+            - url: "http://map_service:50052"

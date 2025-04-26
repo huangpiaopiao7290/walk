@@ -13,6 +13,7 @@ package user_utils
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	user_config "walk/apps/user/config"
@@ -47,6 +48,7 @@ func ComparePWD(hashedPwd string, originPwd string) error {
 // @param uuid 用户id
 // @return access token
 func GenerateAccessToken(jwtCfg *user_config.JWT, uuid string) (string, error) {
+
 	// 创建claims
 	claims := &Claim{
 		UUID: uuid,
@@ -54,8 +56,12 @@ func GenerateAccessToken(jwtCfg *user_config.JWT, uuid string) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(jwtCfg.Access_token_ttl) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
+			ID: 	   uuid,
 		},
 	}
+
+	log.Printf("access calims: expireAt: [%v], issuedAt: [%v], notBefore: [%v], uuid: [%s]\n",
+		claims.ExpiresAt, claims.IssuedAt, claims.NotBefore, claims.UUID)
 
 	// 创建token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -81,9 +87,12 @@ func GenerateRefreshToken(jwtCfg *user_config.JWT, uuid string) (string, error) 
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(jwtCfg.Refresh_token_ttl) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
+			ID: 	   uuid,
 		},
 	}
 
+	log.Printf("refresh calims: expireAt: [%v], issuedAt: [%v], notBefore: [%v], uuid: [%s]\n",
+		claims.ExpiresAt, claims.IssuedAt, claims.NotBefore, claims.UUID)
 	// 创建token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// 签名
@@ -131,3 +140,5 @@ func ParseToken(tokenStr string, jwtCfg *user_config.JWT) (*Claim, error) {
 
 	return nil, fmt.Errorf("invalid token claims")
 }
+
+

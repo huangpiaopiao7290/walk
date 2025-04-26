@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -85,6 +86,7 @@ func startTestServer() (*grpc.Server, net.Listener) {
 	return s, l
 }
 
+// 注册测试
 func TestUserServiceRegister(t *testing.T) {
 	server, listener := startTestServer()
 	defer func() {
@@ -273,6 +275,7 @@ func TestUserServiceLogin(t *testing.T) {
 	})
 }
 
+// 测试获取用户信息
 func TestUserServiceGetUser(t *testing.T) {
 	// 启动测试服务器
 	server, listener := startTestServer()
@@ -325,17 +328,16 @@ func TestUserServiceGetUser(t *testing.T) {
 		// 根据token获取用户信息
 		userResp, err := client.GetUser(context.Background(), getUserReq)
 		if err != nil {
-			t.Errorf("GetUser failed: %v", err)
+			t.Fatalf("GetUser failed: %v", err)
 		}
 		if userResp == nil {
-			t.Errorf("Expected non-nil response for successful GetUser, but got nil")
+			t.Fatalf("Expected non-nil response for successful GetUser, but got nil")
 		}
 		if userResp.Uid != getUserReq.Uid {
 			t.Errorf("Expected UID %s, got %s", getUserReq.Uid, userResp.Uid)
 		}
 		// 打印用户信息
 		log.Printf("GetUser response: %+v", userResp)
-
 	})
 }
 
@@ -425,5 +427,135 @@ func TestUserServiceDeleteUser(t *testing.T) {
 		// 打印获取用户信息响应
 		log.Printf("GetUser response: %+v", getUserResp)
 
+	})
+}
+
+// 测试刷新令牌
+func TestUserServiceRefreshToken(t *testing.T) {
+	// 启动测试服务器
+	server, listener := startTestServer()
+	defer func() {
+		server.Stop()
+		listener.Close()
+	}()
+	// 创建 gRPC 客户端连接
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("Failed to dial server: %v", err)
+	}
+	defer conn.Close()
+	client := user_pb.NewUserServiceClient(conn)
+
+	// 测试正常情况
+	t.Run("TestRefreshTokenSuccess", func(t *testing.T) {
+		// 1. 先登录获取初始token
+		loginReq := &user_pb.LoginRequest{
+			Email:    "test@example.com",
+			Password: "password123",
+		}
+		loginResp, err := client.Login(context.Background(), loginReq)
+		if err != nil {
+			t.Fatalf("Login failed: %v", err)
+		}
+
+		// 2. 使用获取到的token进行刷新
+		refreshReq := &user_pb.RefreshTokenRequest{
+			Uid:   loginResp.Uid,
+			Token: loginResp.RefreshToken,
+		}
+
+		// 模拟操作延时
+		time.Sleep(1 * time.Second)
+
+		refreshResp, err := client.RefreshToken(context.Background(), refreshReq)
+		if err != nil {
+			t.Fatalf("RefreshToken failed: %v", err)
+		}
+
+		// 验证响应
+		if refreshResp.AccessToken == "" {
+			t.Error("Expected non-empty access token")
+		}
+		if refreshResp.RefreshToken == "" {
+			t.Error("Expected non-empty refresh token")
+		}
+		if refreshResp.AccessToken == loginResp.AccessToken {
+			t.Error("New access token should be different from old one")
+		}
+		if refreshResp.RefreshToken == loginResp.RefreshToken {
+			t.Error("New refresh token should be different from old one")
+		}
+
+		log.Printf("Refresh token success: old tokens: %+v, new tokens: %+v",
+			map[string]string{"access": loginResp.AccessToken, "refresh": loginResp.RefreshToken},
+			map[string]string{"access": refreshResp.AccessToken, "refresh": refreshResp.RefreshToken})
+	})
+
+	t.Run("TestRefreshTokenWithMismatchedUID", func(t *testing.T) {
+		// 1. 先登录获取有效token
+		loginResp, err := client.Login(context.Background(), &user_pb.LoginRequest{
+			Email:    "test@example.com",
+			Password: "password123",
+		})
+		if err != nil {
+			t.Fatalf("Login failed: %v", err)
+		}
+
+		// 2. 使用错误的UID
+		mismatchReq := &user_pb.RefreshTokenRequest{
+			Uid:   "wrong-uid",
+			Token: loginResp.RefreshToken,
+		}
+		_, err = client.RefreshToken(context.Background(), mismatchReq)
+		if err == nil {
+			t.Error("Expected error with mismatched UID, got nil")
+		}
+		log.Printf("Expected error received: %v", err)
+	})
+
+	// 性能测试
+	t.Run("TestRefreshTokenPerformance", func(t *testing.T) {
+		// 先登录获取有效token
+		loginResp, err := client.Login(context.Background(), &user_pb.LoginRequest{
+			Email:    "test@example.com",
+			Password: "password123",
+		})
+		if err != nil {
+			t.Fatalf("Login failed: %v", err)
+		}
+
+		refreshReq := &user_pb.RefreshTokenRequest{
+			Uid:   loginResp.Uid,
+			Token: loginResp.RefreshToken,
+		}
+
+		// 执行性能测试
+		iterations := 100
+		start := time.Now()
+
+		for i := 0; i < iterations; i++ {
+			_, err := client.RefreshToken(context.Background(), refreshReq)
+			if err != nil {
+				t.Errorf("RefreshToken failed at iteration %d: %v", i, err)
+				break
+			}
+		}
+
+		duration := time.Since(start)
+		averageTime := duration.Milliseconds() / int64(iterations)
+		log.Printf("Performance test results:\n"+
+			"Total iterations: %d\n"+
+			"Total time: %v\n"+
+			"Average time per request: %dms\n"+
+			"Requests per second: %.2f",
+			iterations, duration, averageTime,
+			float64(iterations)/(float64(duration)/float64(time.Second)))
+
+		// 验证性能指标
+		maxAllowedAvgTime := int64(50) // 50ms
+		if averageTime > maxAllowedAvgTime {
+			t.Errorf("Average response time %dms exceeds maximum allowed time %dms",
+				averageTime, maxAllowedAvgTime)
+		}
 	})
 }
