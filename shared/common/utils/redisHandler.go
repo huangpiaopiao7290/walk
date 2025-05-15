@@ -24,7 +24,7 @@ type RedisConfig struct {
 	MaxRetries   int    // 最大重试次数
 }
 
-func NewRedisClient(config RedisConfig) (*RedisClient, error) {
+func  NewRedisClient(config RedisConfig) (*RedisClient, error) {
 	// 创建redis客户端
 	rdb := redis.NewClient(&redis.Options{
 		Network:      config.Network,

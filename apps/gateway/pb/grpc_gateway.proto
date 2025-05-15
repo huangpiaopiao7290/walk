@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package grpcGateway;
+package gateway;
 
 option go_package = "apps/gateway/pb";
 
@@ -10,7 +10,7 @@ message Request {
     string path = 2;                    // 请求路径
     map<string, string> headers = 3;    // 请求头
     bytes body = 4;                     // 请求体
-    string service_name = 5;            // 目标服务名称
+    string target_service_name = 5;     // 目标服务名称
 }
 
 // 通用响应消息
@@ -18,15 +18,14 @@ message Response {
     int32 status_code = 1;              // HTTP 状态码
     map<string, string> headers = 2;    // 响应头
     bytes body = 3;                     // 响应体
-    string error = 4;                   // 错误信息
+    repeated string errors = 4;         // 错误信息列表
 }
 
 // 服务注册请求
 message RegisterServiceRequest {
     string service_name = 1;            // 服务名称
-    string service_host = 2;            // 服务地址
-    int32 service_port = 3;             // 服务端口
-    repeated string endpoints = 4;      // 服务端点列表
+    string service_address = 2;         // 服务地址（如 "127.0.0.1:8080"）
+    repeated string endpoints = 3;      // 服务端点列表
 }
 
 // 服务注册响应

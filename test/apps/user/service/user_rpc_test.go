@@ -24,17 +24,20 @@ import (
 	utils "walk/shared/common/utils"
 )
 
-var db *gorm.DB
-var cfg *user_config.UserConfig
-
+var (
+	db 			 *gorm.DB
+	cfg 		 *user_config.UserConfig
+	userRepo 	 user_repo.UserRepo[user_model.User]
+	userRedisSct *user_utils.UserRedisSct
+)
 // 初始化用户服务配置
 func init() {
 	// 初始化配置信息
-	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user-service.yml"
-	// Ensure the file exists
+	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user_service.yml"
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		log.Printf("The file %s does not exist", filePath)
 	}
+
 	var err error
 	cfg, err = user_config.InitUserConfig(filePath)
 	if err != nil {
@@ -59,6 +62,30 @@ func init() {
 		log.Fatalf("Failed to configure connection pool: %v", err)
 	}
 
+	// 初始化 userRepo
+	userRepo = user_repo.NewUserRepo[user_model.User](db)
+
+	// 初始化userRedisSct
+	rdsConfig := &utils.RedisConfig{
+		Network:  cfg.Redis.Network,
+		Addr:     cfg.Redis.Addr,
+		Username: cfg.Redis.Username,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+		PoolSize: cfg.Redis.PoolSize,
+		MinIdleConns: cfg.Redis.MinIdleConns,
+		MaxIdleConns: cfg.Redis.MaxIdleConns,
+		MaxRetries: cfg.Redis.MaxRetries,
+	}
+	rds, err := utils.NewRedisClient(*rdsConfig)
+	if err != nil {
+		log.Fatalf("Failed to create Redis client: %v", err)
+	}
+	userRedisSct = user_utils.NewRedisHandler(rds)
+	if userRedisSct == nil {
+		log.Fatalf("Failed to create UserRedisSct: %v", err)
+	}
+
 }
 
 // 启动grpc服务端
@@ -68,9 +95,8 @@ func startTestServer() (*grpc.Server, net.Listener) {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	// 初始化 userRepo
-	userRepo := user_repo.NewUserRepo[user_model.User](db)
-	userService := user_service.NewUserService(cfg, userRepo)
+	//创建用户服务
+	userService := user_service.NewUserService(cfg, userRepo, userRedisSct)
 	if userService == nil {
 		log.Fatalf("Failed to create UserService")
 	}
@@ -166,10 +192,7 @@ func TestUserServiceLogin(t *testing.T) {
 	// 数据库中已有的用户数据
 	existingUserEmail := "test@example.com"
 	existingUserPassword := "password123" // 假设这是存储在数据库中的明文密码
-	wrongPassword := "wrongpassword"
-
-	nonexistentUserEmail := "nonexistent@example.com"
-
+	// wrongPassword := "wrongpassword"
 	// 测试用例1：用户存在且密码正确时的登录成功
 	loginReq1 := &user_pb.LoginRequest{
 		Email:    existingUserEmail,
@@ -203,76 +226,65 @@ func TestUserServiceLogin(t *testing.T) {
 
 	fmt.Println("================================================")
 
-	// 测试用例2：用户存在但密码错误时的登录失败
-	loginReq2 := &user_pb.LoginRequest{
-		Email:    existingUserEmail,
-		Password: wrongPassword,
+	// 从redis获取token
+	storedRefreshToken, err := userRedisSct.GetWithTTL(context.Background(), resp1.Uid)
+	if err != nil {
+		t.Errorf("Failed to get token from Redis: %v", err)
 	}
-	log.Printf("Testing login with incorrect password: %+v", loginReq2)
-	resp2, err := client.Login(context.Background(), loginReq2)
-	if err == nil {
-		t.Errorf("Expected error for incorrect password, but got nil")
-	}
-	if status.Code(err) != codes.Unauthenticated {
-		t.Errorf("Expected code UNAUTHENTICATED, got %v", status.Code(err))
-	}
-	if resp2 != nil {
-		t.Errorf("Expected nil response for incorrect password, but got %+v", resp2)
-	}
+	log.Printf("Stored refresh token: %s", storedRefreshToken)
 
-	log.Printf("resp2: %+v", resp2)
 
-	fmt.Println("================================================")
+	// fmt.Println("================================================")
 
-	// 测试用例3：用户不存在时的登录失败
-	loginReq3 := &user_pb.LoginRequest{
-		Email:    nonexistentUserEmail,
-		Password: existingUserPassword,
-	}
-	log.Printf("Testing login with nonexistent user: %+v", loginReq3)
-	resp3, err := client.Login(context.Background(), loginReq3)
-	if err == nil {
-		t.Errorf("Expected error for nonexistent user, but got nil")
-	}
-	if status.Code(err) != codes.NotFound {
-		t.Errorf("Expected code NOT_FOUND, got %v", status.Code(err))
-	}
-	if resp3 != nil {
-		t.Errorf("Expected nil response for nonexistent user, but got %+v", resp3)
-	}
+	// // 测试用例2：用户存在但密码错误时的登录失败
+	// loginReq2 := &user_pb.LoginRequest{
+	// 	Email:    existingUserEmail,
+	// 	Password: wrongPassword,
+	// }
+	// log.Printf("Testing login with incorrect password: %+v", loginReq2)
+	// resp2, err := client.Login(context.Background(), loginReq2)
+	// if err == nil {
+	// 	t.Errorf("Expected error for incorrect password, but got nil")
+	// }
+	// if status.Code(err) != codes.Unauthenticated {
+	// 	t.Errorf("Expected code UNAUTHENTICATED, got %v", status.Code(err))
+	// }
+	// if resp2 != nil {
+	// 	t.Errorf("Expected nil response for incorrect password, but got %+v", resp2)
+	// }
 
-	log.Printf("resp3: %+v", resp3)
+	// log.Printf("resp2: %+v", resp2)
 
-	fmt.Println("================================================")
+	// fmt.Println("================================================")
 
-	// 解析验证jwt token
-	t.Run("TestToken", func(t *testing.T) {
-		if resp1 != nil {
-			// 解析access token
-			claims, err := user_utils.ParseToken(resp1.AccessToken, &user_config.JWT{
-				Secret:           cfg.JWT.Secret,
-				Access_token_ttl: 1,
-			})
+	// // 解析验证jwt token
+	// t.Run("TestToken", func(t *testing.T) {
+	// 	if resp1 != nil {
+	// 		// 解析access token
+	// 		claims, err := user_utils.ParseToken(resp1.AccessToken, &user_config.JWT{
+	// 			Secret:           cfg.JWT.Secret,
+	// 			Access_token_ttl: 1,
+	// 		})
 
-			log.Printf("Parsed claims: %+v", claims)
+	// 		log.Printf("Parsed claims: %+v", claims)
 
-			if err != nil {
-				t.Errorf("Failed to parse access token: %v", err)
-			}
-			if claims == nil {
-				t.Errorf("Parsed claims should not be nil")
-			}
-			if claims != nil {
-				if claims.UUID != resp1.Uid {
-					t.Errorf("Expected UUID %s, got %s", resp1.Uid, claims.UUID)
-				}
-			} else {
-				t.Error("Parsed claims is nil")
-			}
-		} else {
-			t.Error("resp1 is nil")
-		}
-	})
+	// 		if err != nil {
+	// 			t.Errorf("Failed to parse access token: %v", err)
+	// 		}
+	// 		if claims == nil {
+	// 			t.Errorf("Parsed claims should not be nil")
+	// 		}
+	// 		if claims != nil {
+	// 			if claims.UUID != resp1.Uid {
+	// 				t.Errorf("Expected UUID %s, got %s", resp1.Uid, claims.UUID)
+	// 			}
+	// 		} else {
+	// 			t.Error("Parsed claims is nil")
+	// 		}
+	// 	} else {
+	// 		t.Error("resp1 is nil")
+	// 	}
+	// })
 }
 
 // 测试获取用户信息

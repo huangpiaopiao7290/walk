@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	user_config "walk/apps/user/config"
@@ -141,4 +142,14 @@ func ParseToken(tokenStr string, jwtCfg *user_config.JWT) (*Claim, error) {
 	return nil, fmt.Errorf("invalid token claims")
 }
 
+func ValidateEmail(email string) bool {
+    // 使用正则表达式验证邮箱格式
+    pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+    matched, _ := regexp.MatchString(pattern, email)
+    return matched
+}
+
+func ValidatePassword(password string) bool {
+    return len(password) >= 8
+}
 

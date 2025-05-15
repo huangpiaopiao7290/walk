@@ -8,6 +8,7 @@ import (
 	"context"
 	"log"
 	"sync"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,22 +21,28 @@ import (
 )
 
 type UserService struct {
-	Cfg      *user_config.UserConfig
-	UserRepo user_repo.UserRepo[user_model.User]
+	Cfg      		*user_config.UserConfig
+	UserRepo 		user_repo.UserRepo[user_model.User]
+	UserRedisSct  	*user_utils.UserRedisSct
 	user_pb.UnimplementedUserServiceServer
 }
 
 var userPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any{
 		return &user_model.User{}
 	},
 }
 
-// 构造函数
-func NewUserService(cfg *user_config.UserConfig, userRepo user_repo.UserRepo[user_model.User]) *UserService {
+// @brief: 构造函数
+// @param cfg *user_config.UserConfig: 用户配置
+// @param userRepo user_repo.UserRepo[user_model.User]: 用户仓库
+// @param userRedisSct *user_utils.UserRedisSct: 用户redis操作
+// @return *UserService: 用户服务
+func NewUserService(cfg *user_config.UserConfig, userRepo user_repo.UserRepo[user_model.User], userRedisSct *user_utils.UserRedisSct) *UserService {
 	return &UserService{
-		Cfg:      cfg,
-		UserRepo: userRepo,
+		Cfg:      		cfg,
+		UserRepo: 		userRepo,
+		UserRedisSct:   userRedisSct,
 	}
 }
 
@@ -68,6 +75,15 @@ func (s *UserService) Register(ctx context.Context, req *user_pb.RegisterRequest
 			}
 		}
 	}()
+	
+	// 检测邮箱格式是否正确
+	if !user_utils.ValidateEmail(req.Email) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid email format")
+	}
+	// 检测密码强度
+	if !user_utils.ValidatePassword(req.Password) {
+		return nil, status.Errorf(codes.InvalidArgument, "password must be at least 8 characters")
+	}
 
 	// 检测注册邮箱是否存在
 	existingUser, getErr := s.UserRepo.GetByFields(map[string]any{"email": req.Email})
@@ -129,7 +145,7 @@ func (s *UserService) Login(ctx context.Context, req *user_pb.LoginRequest) (*us
 		return nil, status.Errorf(codes.NotFound, "user with this email does not exist")
 	}
 
-	log.Printf("existingUser: %v", existingUser)
+	// log.Printf("existingUser: %v", existingUser)
 
 	// 若用户存在，验证密码
 	pwdErr := user_utils.ComparePWD(existingUser.Pwd, req.Password)
@@ -152,9 +168,11 @@ func (s *UserService) Login(ctx context.Context, req *user_pb.LoginRequest) (*us
 	}
 
 	// 将refreshToken存储到redis并设置过期时间
-
-
-
+	err = s.UserRedisSct.SetWithTTL(ctx, existingUser.UUID, refreshToken, time.Duration(s.Cfg.JWT.Refresh_token_ttl)*time.Second)
+	if err != nil {
+		log.Printf("[UserService] Login error: failed to set refresh token in Redis: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to store refresh token in Redis: %v", err)
+	} 
 	// 返回登录成功的响应
 	return &user_pb.LoginResponse{
 		Uid:          existingUser.UUID,
@@ -172,7 +190,13 @@ func (s *UserService) Login(ctx context.Context, req *user_pb.LoginRequest) (*us
 // @Return *user_proto.LogoutResponse: logout response
 // @Return error: error
 func (s *UserService) Logout(ctx context.Context, req *user_pb.LogoutRequest) (*user_pb.LogoutResponse, error) {
-	//
+	// 从redis中删除refreshToken
+	err := s.UserRedisSct.Delete(ctx, req.Uid)
+	if err != nil {
+		log.Printf("[UserService] Logout error: failed to delete refresh token from Redis: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to delete refresh token from Redis: %v", err)
+	}
+
 	return &user_pb.LogoutResponse{
 		Success: true,
 	}, nil
@@ -239,6 +263,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req *user_pb.UpdateUserReq
 	}()
 
 	updateUser := userPool.Get().(*user_model.User) // 从对象池获取对象
+	*updateUser = user_model.User{}					// 清空对象
 	defer userPool.Put(updateUser)
 
 	// 获取需要更新的字段
@@ -268,6 +293,11 @@ func (s *UserService) UpdateUser(ctx context.Context, req *user_pb.UpdateUserReq
 	if err := s.UserRepo.UpdateByUid(req.Uid, updateUser, fields); err != nil {
 		log.Printf("[UserService] UpdateUser error: %v", err)
 		return nil, status.Errorf(codes.Internal, "failed to update user data: %v", err)
+	}
+	// 提交事务
+	if err := s.UserRepo.CommitTransaction(tx); err != nil {
+		log.Printf("[UserService] UpdateUser error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to commit transaction: %v", err)
 	}
 
 	return &user_pb.UpdateUserResponse{
@@ -311,6 +341,13 @@ func (s *UserService) DeleteUser(ctx context.Context, req *user_pb.DeleteUserReq
 		log.Printf("[UserService] DeleteUser error: %v", err)
 		return nil, status.Errorf(codes.Internal, "failed to delete user data: %v", err)
 	}
+
+	// 提交事务	
+	if err := s.UserRepo.CommitTransaction(tx); err != nil {
+		log.Printf("[UserService] DeleteUser error: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to commit transaction: %v", err)
+	}
+
 	return &user_pb.DeleteUserResponse{
 		Success: true,
 	}, nil
@@ -360,8 +397,18 @@ func (s *UserService) RefreshToken(ctx context.Context, req *user_pb.RefreshToke
 		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
 	}
 
-	// 将新的令牌存储到redis
-
+	// 更新Redis中的刷新令牌
+	err = s.UserRedisSct.SetWithTTL(
+		ctx, 
+		user.UUID,          // Key: 用户UUID
+		refreshToken,       // Value: 新生成的RefreshToken
+		time.Duration(s.Cfg.JWT.Refresh_token_ttl)*time.Second, // TTL
+	)
+	if err != nil {
+		log.Printf("[UserService] RefreshToken error: failed to update Redis: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to refresh token")
+	}
+	
 	return &user_pb.RefreshTokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,

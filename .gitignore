@@ -1,5 +1,5 @@
 .vscode
 .env
 .trae
-./apps/map/config/map-service.yml
-./apps/user/config/user-service.yml
+./apps/map/config/map_service.yml
+./apps/user/config/user_service.yml

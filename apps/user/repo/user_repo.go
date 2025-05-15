@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	// user_model "walk/apps/user/model"
 
 	"gorm.io/gorm"
 )
@@ -107,8 +108,9 @@ func (u *UserRepoImpl[T]) UpdateByUid(uid string, entity *T, fields []string) er
 // delete
 func (u *UserRepoImpl[T]) DeleteByUid(uid string) error {
 
-	var entity T
-	if err := u.DB.Where("uuid = ?", uid).Delete(&entity).Error; err != nil {
+	// var entity T
+	// err := u.DB.Where("uuid = ?", uid).Delete(&entity).Error;
+	if err := u.DB.Where("uuid = ?", uid).Delete(new(T)).Error; err != nil {
 		log.Println("[UserRepoImpl] DeleteByUid error: ", err)
 		return err
 	}

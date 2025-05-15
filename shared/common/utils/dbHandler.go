@@ -6,10 +6,12 @@ package utils
 
 import (
 	"fmt"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"log"
 	"time"
+
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"github.com/google/uuid"
 )
@@ -28,7 +30,9 @@ func NewDBConnection(cfg *DBConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		cfg.User, cfg.Passwd, cfg.Host, cfg.Port, cfg.DBName)
 	// create a new database connection
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}

@@ -20,7 +20,7 @@ var repo user_repo.UserRepo[user_model.User]
 
 func init() {
 	// 初始化配置信息
-	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user-service.yml"
+	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user_service.yml"
 	// Ensure the file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		log.Printf("The file %s does not exist", filePath)
@@ -62,12 +62,6 @@ func TestCreate(t *testing.T) {
 		}
 	}()
 
-	defer func() {
-		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
-		if !t.Failed() {
-			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
-		}
-	}()
 	// 初始化repo接口
 	repo = user_repo.NewUserRepo[user_model.User](tx)
 
@@ -177,13 +171,6 @@ func TestGetByID(t *testing.T) {
 		}
 	}()
 
-	defer func() {
-		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
-		if !t.Failed() {
-			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
-		}
-	}()
-
 	// 初始化repo接口
 	repo = user_repo.NewUserRepo[user_model.User](tx)
 
@@ -227,13 +214,6 @@ func TestGetByFields(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-		}
-	}()
-
-	defer func() {
-		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
-		if !t.Failed() {
-			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
 		}
 	}()
 
@@ -283,13 +263,6 @@ func TestUpdate(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-		}
-	}()
-
-	defer func() {
-		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
-		if !t.Failed() {
-			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
 		}
 	}()
 
@@ -347,13 +320,8 @@ func TestDelete(t *testing.T) {
 		}
 	}()
 
-	defer func() {
-		// 这里还可以使用docker启动临时数据库, 测试完自动销毁
-		if !t.Failed() {
-			db.Exec("ALTER TABLE users AUTO_INCREMENT = 1")
-		}
-	}()
-
+	repo = user_repo.NewUserRepo[user_model.User](tx)
+	
 	// 插入一条记录
 	user := user_model.User{
 		Uname:       "David",
@@ -369,22 +337,36 @@ func TestDelete(t *testing.T) {
 		t.Fatalf("Failed to create user: %v", err)
 	}
 
-	// 删除记录
-	err = repo.DeleteByUid(user.UUID)
+	// 查询记录
+	result, err := repo.GetByFields(map[string]any{"uname": user.Uname})
 	if err != nil {
-		t.Errorf("Delete error: %v", err)
+		t.Errorf("GetByID error: %v", err)
 	}
+	t.Logf("Fetched user: %+v", result)
 
-	// 验证删除结果
-	_, err = repo.GetByID(user.ID)
-	if err == nil {
-		t.Errorf("Expected error when fetching deleted user, but got nil")
-	}
+    // 执行删除
+    if err := repo.DeleteByUid(user.UUID); err != nil {
+        t.Fatalf("Delete failed: %v", err)
+    }
+    // 验证常规查询无法找到记录
+    _, err = repo.GetByFields(map[string]any{"uuid": user.UUID})
+    if err != nil {
+        t.Errorf("GetByFields error: %v", err)
+    } else {
+        t.Error("Expected user to be soft deleted, but still found")
+    }
+
+    // // 使用 Unscoped 查询已删除记录
+    // var deletedUser user_model.User
+    // err = db.Unscoped().Where("uuid = ?", user.UUID).First(&deletedUser).Error
+    // if err != nil {
+    //     t.Fatalf("Unscoped query failed: %v", err)
+    // }
 
 	// 提交事务
 	if err := tx.Commit().Error; err != nil {
 		t.Errorf("Failed to commit transaction: %v", err)
 	}
 
-	log.Printf("Deleted user ID: %d", user.ID)
+	t.Logf("Deleted user ID: %d", user.ID)
 }

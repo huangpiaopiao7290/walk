@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 	"context"
-	"time"
+
 
 	"walk/apps/user/config"
 	"walk/apps/user/utils"
@@ -63,9 +63,8 @@ func TestUserRedisSct_Set(t *testing.T) {
 	ctx := context.Background()
 	key := "test_key"
 	value := "test_value"
-	expiration := time.Minute
 
-	err := userRedisSct.Set(ctx, key, value, expiration)
+	err := userRedisSct.Set(ctx, key, value)
 	if err != nil {
 		t.Errorf("Set failed: %v", err)
 	}
