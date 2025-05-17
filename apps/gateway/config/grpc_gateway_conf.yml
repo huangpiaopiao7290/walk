@@ -1,22 +1,44 @@
-http:
-  routers:
-    user_service:
-      rule: "Host(`/api/v1/user`)"
-      service: user_serice
-      entryPoints:
-        - web
-    map_service:
-      rule: "Host(`/api/v1/map`)"
-      service: map_service
-      entryPoints:
-        - web
-    
-    service:
-      user_service:
-        loadBalancer:
-          servers:
-            - url: "http://user_service:50051"
-      map_service:
-        loadBalancer:
-          servers:
-            - url: "http://map_service:50052"
+servers:
+  - name: user-service
+    address: "127.0.0.1:50052"
+    endpoints:
+      - method: POST
+        path: /api/auth/register
+        grpc_service: userServer.UserService
+        grpc_method: Register
+        auth_required: false
+
+      - method: POST
+        path: /api/auth/login
+        grpc_service: userServer.UserService
+        grpc_method: Login
+        auth_required: false
+
+      - method: POST
+        path: /api/auth/logout
+        grpc_service: userServer.UserService
+        grpc_method: Logout
+        auth_required: true
+
+      - method: GET
+        path: /api/user/me
+        grpc_service: userServer.UserService
+        grpc_method: GetUser
+        auth_required: true
+
+      - method: PUT
+        path: /api/user/me
+        grpc_service: userServer.UserService
+        grpc_method: UpdateUser
+        auth_required: true
+
+      - method: DELETE
+        path: /api/user/me
+        grpc_service: userServer.UserService
+        grpc_method: DeleteUser
+        auth_required: true
+
+etcd:
+  endpoints:
+    - localhost:2379
+  dial_timeout: 7

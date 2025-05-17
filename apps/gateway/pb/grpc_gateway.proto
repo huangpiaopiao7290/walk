@@ -60,16 +60,12 @@ message HandleErrorRequest {
 service GatewayService {
     // 协议转换
     rpc HandleRequest(Request) returns (Response) {}
-    
     // 路由
     rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse) {}
-    
     // 身份验证
     rpc Authenticate(AuthenticateRequest) returns (Response) {}
-    
     // 日志监控
     rpc LogRequest(LogRequestMessage) returns (Response) {}
-    
     // 错误处理
     rpc HandleError(HandleErrorRequest) returns (Response) {}
 }

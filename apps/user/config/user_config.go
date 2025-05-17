@@ -6,7 +6,6 @@ package user_config
 
 import (
 	"fmt"
-	"log"
 	"github.com/spf13/viper"
 )
 
@@ -60,9 +59,15 @@ type Etcd struct {
 	RequestTimeout int 		`mapstructure:"requestTimeout"`
 }
 
+
+// 默认配置文件路径（相对项目根目录）
+const defaultConfigPath = "apps/user/config/user-service.yml"
+
 func InitUserConfig(userConfigFile string) (*UserConfig, error) {
 	if userConfigFile == "" {
-		log.Fatal("please input user config file path")
+		// 使用默认配置文件路径
+		userConfigFile = defaultConfigPath
+		return nil, fmt.Errorf("user config file is empty, using default apth: %s", defaultConfigPath)
 	}
 
 	viper.SetConfigFile(userConfigFile)
@@ -82,5 +87,3 @@ func InitUserConfig(userConfigFile string) (*UserConfig, error) {
 }
 
 
-// 默认配置文件路径（相对项目根目录）
-const defaultConfigPath = "apps/user/config/user-service.yml"

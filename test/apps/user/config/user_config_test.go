@@ -9,7 +9,7 @@ import (
 )
 
 func TestUserConfig(t *testing.T) {
-	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user-service.yml"
+	filePath := "/home/pp/programs/program_go/timeTrack/walk/apps/user/config/user_service.yml"
 	// Ensure the file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Fatalf("Config file does not exist at path: %s", filePath)
