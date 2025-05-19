@@ -10,12 +10,17 @@ import (
 )
 
 type UserConfig struct {
+	Server 		Server 	`mapstructure:"server"`
 	JWT 		JWT 	 	`mapstructure:"jwt"`
 	Email 		Email 	 	`mapstructure:"email"`
 	Database 	Database 	`mapstructure:"database"`
 	Redis  		Redis 	`mapstructure:"Redis"`
 	Etcd 		Etcd 	 	`mapstructure:"etcd"`
 
+}
+
+type Server struct {
+	Port 		int 	`mapstructure:"port"`
 }
 
 type JWT struct {

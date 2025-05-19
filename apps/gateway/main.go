@@ -51,6 +51,12 @@ func init() {
 
 
 func main() {
+	defer func() {
+		if err := etcdClient.Close(); err != nil {
+			log.Printf("Failed to close etcd client: %v", err)
+		}
+	}()
+
 	// 创建DynamicHandler实例
 	dynamicHandler := handler.NewDynamicHandler(etcdClient)
 
